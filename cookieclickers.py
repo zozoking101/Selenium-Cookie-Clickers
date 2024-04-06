@@ -82,7 +82,7 @@ while True:
     num = int(''.join(filter(str.isdigit, modified_text)))
     print(num)
 
-    for i in range(6):
+    for i in range(21):
         try:
             product_price = word_to_number(driver.find_element(By.ID, f"{PRODUCT_PRICE_PREFIX}{i}").text)
 
