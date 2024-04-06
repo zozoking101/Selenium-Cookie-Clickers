@@ -4,6 +4,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.common.exceptions import NoSuchElementException
+from selenium.common.exceptions import ElementClickInterceptedException
 import time
 
 URL = "https://orteil.dashnet.org/cookieclicker/"
@@ -41,7 +42,7 @@ def word_to_number(word):
     else:
         for key, value in number_dict.items():
             if key in word:
-                return float(word.replace(key, "").strip()) * value
+                return int(float(word.replace(key, "").strip()) * value)
 
     return word
 
@@ -75,36 +76,34 @@ cookie = driver.find_element(By.CSS_SELECTOR, "#bigCookie")
 time.sleep(3)
 
 while True:
-    try:
+    for _ in range(100):  # Increase for a faster rate of clicks.
         cookie.click()
-        cookie_number = driver.find_element(By.ID, "cookies")
-        num_text = cookie_number.text
-        if "cookies" in num_text:
-            num = int(word_to_number(num_text.split("cookies")[0]))
-            print(num)
-        else:
-            num = int(word_to_number(num_text.split("cookie")[0]))
-            print(num)
+    cookie_number = driver.find_element(By.ID, "cookies")
+    num_text = cookie_number.text
+    if "cookies" in num_text:
+        num = int(word_to_number(num_text.split("cookies")[0]))
+        print(num)
+    else:
+        num = int(word_to_number(num_text.split("cookie")[0]))
+        print(num)
 
-        for i in range(21):  # number of buildings + 1
-            try:
-                product_price = word_to_number(driver.find_element(By.ID, f"{PRODUCT_PRICE_PREFIX}{i}").text)
+    for i in range(21):  # number of buildings + 1
+        try:
+            product_price = word_to_number(driver.find_element(By.ID, f"{PRODUCT_PRICE_PREFIX}{i}").text)
 
-                if not product_price.isdigit():
+            if not isinstance(product_price, float):
+                if not str(product_price).isdigit():
                     continue
 
-                product_price = int(product_price)
+            product_price = int(product_price)
 
-                if num >= product_price:
-                    WebDriverWait(driver, 10).until(
-                        ec.presence_of_element_located(
-                         (By.ID, f"{PRODUCT_PREFIX}{i}"))
-                    )
-                    time.sleep(1.5)  # adjust for button-loading speed
-                    product = driver.find_element(By.ID, f"{PRODUCT_PREFIX}{i}")
-                    product.click()
-            except NoSuchElementException:
-                continue
-
-    except NoSuchElementException:
-        continue
+            if num >= product_price:
+                WebDriverWait(driver, 10).until(
+                    ec.presence_of_element_located(
+                     (By.ID, f"{PRODUCT_PREFIX}{i}"))
+                )
+                time.sleep(2)  # Adjust for button-loading speed.
+                product = driver.find_element(By.ID, f"{PRODUCT_PREFIX}{i}")
+                product.click()
+        except (NoSuchElementException, ElementClickInterceptedException):
+            continue
