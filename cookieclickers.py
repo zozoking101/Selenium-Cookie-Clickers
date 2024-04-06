@@ -100,7 +100,7 @@ while True:
                         ec.presence_of_element_located(
                          (By.ID, f"{PRODUCT_PREFIX}{i}"))
                     )
-                    time.sleep(1)
+                    time.sleep(1.5)  # adjust for button-loading speed
                     product = driver.find_element(By.ID, f"{PRODUCT_PREFIX}{i}")
                     product.click()
             except NoSuchElementException:
